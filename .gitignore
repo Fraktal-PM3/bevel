@@ -42,4 +42,6 @@
 **/files/*.crt
 requirements.lock
 
+# Build folders
+build/
 **/build/*
