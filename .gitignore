@@ -41,3 +41,5 @@
 **/files/*.json
 **/files/*.crt
 requirements.lock
+
+**/build/*
