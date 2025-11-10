@@ -26,7 +26,7 @@ spec:
       vault:
         type: hashicorp
         network: fabric
-        address: https://kind-walls-sing.loca.lt
+        address: http://localhost:8200
         authPath: devombud1
         secretEngine: secretsv2
         secretPrefix: "data/devombud1"
