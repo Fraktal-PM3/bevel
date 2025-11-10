@@ -22,8 +22,7 @@
 .settings
 *.tmproj
 **/.gradle/*
-# Ignore folder named 'build'
-**/*build*/
+
 **/crypto-config*/*
 **/go/*
 **/*tmp*/
