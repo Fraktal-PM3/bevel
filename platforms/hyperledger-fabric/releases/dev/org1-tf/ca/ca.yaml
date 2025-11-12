@@ -1,0 +1,61 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ca
+  namespace: org1-tf-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/fabric-ca-server   
+  values:
+    global:
+      serviceAccountName: vault-auth
+      cluster:
+        provider: minikube
+        cloudNativeServices: false
+        kubernetesUrl: https://192.168.50.97:18443
+      vault:
+        type: hashicorp
+        network: fabric
+        address: http://192.168.49.1:8200
+        authPath: devorg1-tf
+        secretEngine: secretsv2
+        secretPrefix: "data/devorg1-tf"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: haproxy
+        externalUrlSuffix: tfdev.fraktal-pm3.se
+
+    storage:
+      enabled: false
+      nameOverride: org1-tf-bevel-storageclass
+      size: 512Mi
+
+    image:
+      alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+      ca: ghcr.io/hyperledger/bevel-fabric-ca:latest
+      pullSecret: ""
+
+    server:
+      removeCertsOnDelete: true
+      tlsStatus: true
+      adminUsername: org1-tf-admin
+      adminPassword: org1-tf-adminpw
+      subject: "/C=GB/ST=London/L=London/O=CGI/CN=ca.org1-tf-net.tfdev.fraktal-pm3.se"
+      clusterIpPort: 7054
+
+    labels:
+      service:
+        - example1: example2
+      pvc:
+      deployment:
