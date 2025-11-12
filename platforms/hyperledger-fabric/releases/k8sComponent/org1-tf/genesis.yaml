@@ -1,0 +1,54 @@
+global:
+  version: 2.5.4
+  serviceAccountName: vault-auth
+  cluster:
+    provider: minikube
+    cloudNativeServices: false
+  vault:
+    type: hashicorp
+    network: fabric
+    address: http://192.168.49.1:8200
+    authPath: devorg1-tf
+    secretEngine: secretsv2
+    secretPrefix: "data/devorg1-tf"
+    role: vault-role
+    tls: false
+  proxy:
+    provider: haproxy
+    externalUrlSuffix: tfdev.fraktal-pm3.se
+
+image:
+  alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+  fabricTools: ghcr.io/hyperledger/bevel-fabric-tools
+  pullSecret: ""
+
+organizations:
+  - name: org1-tf
+    orderers:
+    - name: orderer1
+      ordererAddress: orderer1.org1-tf-net.tfdev.fraktal-pm3.se:443
+    peers:
+    - name: peer0
+      peerAddress: peer0.org1-tf-net.tfdev.fraktal-pm3.se:443
+    - name: peer1
+      peerAddress: peer1.org1-tf-net.tfdev.fraktal-pm3.se:443
+
+consensus: raft
+
+channels:
+ 
+ 
+  - name: tfnet-ch1
+    consortium: tfConsortium
+    orderers: 
+      - org1-tf
+    participants:
+      - org1-tf
+
+settings:
+  generateGenesis: True 
+  removeConfigMapOnDelete: false
+
+add_new_org: false
+newOrgs:
+  - name: org1-tf
