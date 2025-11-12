@@ -1,0 +1,61 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ca
+  namespace: transporter2-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: ca
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/fabric-ca-server   
+  values:
+    global:
+      serviceAccountName: vault-auth
+      cluster:
+        provider: minikube
+        cloudNativeServices: false
+        kubernetesUrl: https://192.168.49.1:18443
+      vault:
+        type: hashicorp
+        network: fabric
+        address: http://192.168.49.1:8200
+        authPath: devtransporter2
+        secretEngine: secretsv2
+        secretPrefix: "data/devtransporter2"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: haproxy
+        externalUrlSuffix: org2proxy.pm3fraktal.se
+
+    storage:
+      enabled: false
+      nameOverride: transporter2-bevel-storageclass
+      size: 512Mi
+
+    image:
+      alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+      ca: ghcr.io/hyperledger/bevel-fabric-ca:latest
+      pullSecret: regcred
+
+    server:
+      removeCertsOnDelete: true
+      tlsStatus: true
+      adminUsername: transporter2-admin
+      adminPassword: transporter2-adminpw
+      subject: "/C=SE/ST=Lulea/L=Lulea/O=Transporter2"
+      clusterIpPort: 7054
+
+    labels:
+      service:
+        - example1: example2
+      pvc:
+      deployment:
