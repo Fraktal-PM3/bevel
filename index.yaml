@@ -1104,6 +1104,48 @@ entries:
   fabric-ca-server:
   - apiVersion: v1
     appVersion: latest
+    created: "2025-11-12T09:58:45.696421117Z"
+    dependencies:
+    - name: bevel-vault-mgmt
+      repository: file://../../../shared/charts/bevel-vault-mgmt
+      tags:
+      - bevel
+      version: ~1.0.0
+    - name: bevel-scripts
+      repository: file://../../../shared/charts/bevel-scripts
+      tags:
+      - bevel
+      version: ~1.0.0
+    - alias: storage
+      condition: storage.enabled
+      name: bevel-storageclass
+      repository: file://../../../shared/charts/bevel-storageclass
+      tags:
+      - storage
+      version: ~1.3.1
+    description: 'Hyperledger Fabric: Deploys Fabric CA server'
+    digest: 826d1631712d291fb9a9a66e8aee9553c1d7d240d2f8ded58d31f35031ca5644
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-ca-server
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-ca-server-1.3.1/fabric-ca-server-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: latest
     created: "2024-07-22T09:51:10.525658137Z"
     dependencies:
     - name: bevel-vault-mgmt
@@ -1183,6 +1225,16 @@ entries:
   fabric-cacti-connector:
   - apiVersion: v2
     appVersion: 1.1.3
+    created: "2025-11-12T09:58:45.84405124Z"
+    description: 'Hyperledger Fabric: Deploys Cactus Fabric Connector.'
+    digest: 04c45af9356234224275ac7ae00591ccc3a0be733e1b6a47d39d94deb630ad40
+    name: fabric-cacti-connector
+    type: application
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-cacti-connector-1.3.1/fabric-cacti-connector-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v2
+    appVersion: 1.1.3
     created: "2024-01-24T09:41:46.105802615Z"
     description: 'Hyperledger Fabric: Deploys Cactus Fabric Connector.'
     digest: df7aa27f618405ac2be318d6dcaf274904c75bd04d14dac8715b150158112f80
@@ -1202,6 +1254,30 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-cacti-connector-0.15.0/fabric-cacti-connector-0.15.0.tgz
     version: 0.15.0
   fabric-catools:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:46.017611782Z"
+    description: 'Hyperledger Fabric: Generates Fabric Certificates and Keys'
+    digest: 7597823ec34068b7310bdf3a5fd3cfa22271baaf4bd72707af05f220a88fda7d
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-catools
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-catools-1.3.1/fabric-catools-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:10.651762196Z"
@@ -1247,6 +1323,15 @@ entries:
   fabric-chaincode-approve:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:46.159881665Z"
+    description: 'Hyperledger Fabric: Approves the chaincode.'
+    digest: 5b738afa725c5f57fc41e2ffb149ba7fd9be629823c77931aa5e34af07f489d3
+    name: fabric-chaincode-approve
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-approve-1.3.1/fabric-chaincode-approve-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:46.522682538Z"
     description: 'Hyperledger Fabric: Approves the chaincode.'
     digest: 2a878077cd86347d95fee0f2e4a80e96e9c08ec782f5ff10171432a93fff1fa8
@@ -1264,6 +1349,15 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-chaincode-approve-0.15.0/fabric-chaincode-approve-0.15.0.tgz
     version: 0.15.0
   fabric-chaincode-commit:
+  - apiVersion: v1
+    appVersion: "2.0"
+    created: "2025-11-12T09:58:46.34058918Z"
+    description: 'Hyperledger Fabric: Commits a chaincode to a channel.'
+    digest: afc57d7df6406831899a43d56dd15a39df9e2894e346d1543d96845c9c567082
+    name: fabric-chaincode-commit
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-commit-1.3.1/fabric-chaincode-commit-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: "2.0"
     created: "2024-01-24T09:41:46.707706732Z"
@@ -1285,6 +1379,15 @@ entries:
   fabric-chaincode-install:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:46.492384531Z"
+    description: 'Hyperledger Fabric: Installs chaincode on a peer.'
+    digest: 5e2e1136e378fd4a87d8ca4a98a5885a5cf232305fff0fd3343a98b9f83d34dc
+    name: fabric-chaincode-install
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-install-1.3.1/fabric-chaincode-install-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:46.980663301Z"
     description: 'Hyperledger Fabric: Installs chaincode on a peer.'
     digest: 4040d168a4280f3294fdc0afbb5332ab18d07c71d9841928684b139c8a9ba144
@@ -1302,6 +1405,15 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-chaincode-install-0.15.0/fabric-chaincode-install-0.15.0.tgz
     version: 0.15.0
   fabric-chaincode-instantiate:
+  - apiVersion: v1
+    appVersion: "2.0"
+    created: "2025-11-12T09:58:46.640345727Z"
+    description: 'Hyperledger Fabric: Instantiates chaincode on a peer.'
+    digest: 7068de693f8b86152e06658550bf4db6cfc8d0639f9b019bcc50e08cbc84be54
+    name: fabric-chaincode-instantiate
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-instantiate-1.3.1/fabric-chaincode-instantiate-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: "2.0"
     created: "2024-01-24T09:41:47.200855891Z"
@@ -1323,6 +1435,15 @@ entries:
   fabric-chaincode-invoke:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:46.794884955Z"
+    description: 'Hyperledger Fabric: Invokes chaincode on a peer.'
+    digest: a0d8713036c6f8eb16c7a621205b94f7231e818b9b07be84d2cb4d7236fa395b
+    name: fabric-chaincode-invoke
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-invoke-1.3.1/fabric-chaincode-invoke-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:47.351608345Z"
     description: 'Hyperledger Fabric: Invokes chaincode on a peer.'
     digest: 3ad491281aef0396beb1f380b2fb980e814bc6256b95bfc8880ee685401a2802
@@ -1339,7 +1460,41 @@ entries:
     urls:
     - https://github.com/hyperledger/bevel/releases/download/fabric-chaincode-invoke-0.15.0/fabric-chaincode-invoke-0.15.0.tgz
     version: 0.15.0
+  fabric-chaincode-lifecycle:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:46.960328465Z"
+    description: A Helm chart for Hyperledger Fabric chaincode lifecycle operations
+      (approve, commit, invoke).
+    digest: 71faaef6207f863a6d50efeee748c472064d01a663990d37031361cd43220743
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-chaincode-lifecycle
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-lifecycle-1.3.2/fabric-chaincode-lifecycle-1.3.2.tgz
+    version: 1.3.2
   fabric-chaincode-upgrade:
+  - apiVersion: v1
+    appVersion: "2.0"
+    created: "2025-11-12T09:58:47.110505849Z"
+    description: 'Hyperledger Fabric: Upgrades chaincode on a peer.'
+    digest: 477c8cd574be6be9a741a37abb2f096b0701d0f6fa851d130bae7d6f34f911e5
+    name: fabric-chaincode-upgrade
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-chaincode-upgrade-1.3.1/fabric-chaincode-upgrade-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: "2.0"
     created: "2024-01-24T09:41:47.5434763Z"
@@ -1359,6 +1514,30 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-chaincode-upgrade-0.15.0/fabric-chaincode-upgrade-0.15.0.tgz
     version: 0.15.0
   fabric-channel-create:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:47.258932863Z"
+    description: 'Hyperledger Fabric: Creates channel'
+    digest: 30707cf1c3ac489e255ee4d01f06d1b36b94c7a0f3a27fece3bfba7105eacf79
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-channel-create
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-channel-create-1.3.1/fabric-channel-create-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:10.791520096Z"
@@ -1404,6 +1583,30 @@ entries:
   fabric-channel-join:
   - apiVersion: v1
     appVersion: latest
+    created: "2025-11-12T09:58:47.430656776Z"
+    description: 'Hyperledger Fabric: Joins the peer to the channel.'
+    digest: f6cfa93e5df34454e0a4f6215316f7963d40999829fba0bc23420c84a333ae4a
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-channel-join
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-channel-join-1.3.1/fabric-channel-join-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: latest
     created: "2024-07-22T09:51:10.923040055Z"
     description: 'Hyperledger Fabric: Joins the peer to the channel.'
     digest: 8f2b7a71166e26c5e353d544a29b25160be479d6ed63cb327f364db0d5657885
@@ -1445,6 +1648,30 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-channel-join-0.15.0/fabric-channel-join-0.15.0.tgz
     version: 0.15.0
   fabric-cli:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:47.595047971Z"
+    description: 'Hyperledger Fabric: Deploys Fabric CLI'
+    digest: efbca6e0ead0ad202c76b8e8d409b2fb8348320a7f12ef1c9d56c4969f0ac622
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-cli
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-cli-1.3.1/fabric-cli-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:11.053206493Z"
@@ -1489,6 +1716,30 @@ entries:
     version: 0.15.0
   fabric-external-chaincode:
   - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:47.769887145Z"
+    description: A Helm chart for Hyperledger Fabric external chaincode installation
+      and deployment.
+    digest: 46734c5967420f7129ba329bf63dad4c9844692f31f245156e9faca397c7c532
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-external-chaincode
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-external-chaincode-1.3.4/fabric-external-chaincode-1.3.4.tgz
+    version: 1.3.4
+  - apiVersion: v1
     appVersion: "2.0"
     created: "2024-01-24T09:41:48.222678704Z"
     description: 'Hyperledger Fabric: Deploys external chaincode server.'
@@ -1509,6 +1760,15 @@ entries:
   fabric-external-chaincode-install:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:47.89683711Z"
+    description: 'Hyperledger Fabric: Installs external chaincode.'
+    digest: fda679223ce229288e2ad1d2e5bb9eda01da0a0029f5eb4598820f67d6d0925d
+    name: fabric-external-chaincode-install
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-external-chaincode-install-1.3.1/fabric-external-chaincode-install-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:48.408838984Z"
     description: 'Hyperledger Fabric: Installs external chaincode.'
     digest: 3118065404ee88419d3234dac47bf144476caaae08e401db3890089e85d576f7
@@ -1526,6 +1786,30 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-external-chaincode-install-0.15.0/fabric-external-chaincode-install-0.15.0.tgz
     version: 0.15.0
   fabric-genesis:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:48.038270748Z"
+    description: 'Hyperledger Fabric: Generates configtx and genesis files.'
+    digest: 1ba3f4477c32719d363534df267f3f7b4c1bcf7b950092702e65eee9af0d727e
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-genesis
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-genesis-1.3.1/fabric-genesis-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:11.295632391Z"
@@ -1553,6 +1837,15 @@ entries:
   fabric-operations-console:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:48.189683557Z"
+    description: 'Hyperledger Fabric: Deploys Fabric Operations Console.'
+    digest: 08fb26e5956ccdda4d95e8dd6450f7bb8792bb3139138f5a0bac77f7255c829a
+    name: fabric-operations-console
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-operations-console-1.3.1/fabric-operations-console-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:48.605516195Z"
     description: 'Hyperledger Fabric: Deploys Fabric Operations Console.'
     digest: af1f675a76db1f55bd63b1dfbb9c54d52e90f91ab515e61901b3bcb0158b8389
@@ -1570,6 +1863,45 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-operations-console-0.15.0/fabric-operations-console-0.15.0.tgz
     version: 0.15.0
   fabric-orderernode:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:48.348449607Z"
+    dependencies:
+    - alias: storage
+      condition: storage.enabled
+      name: bevel-storageclass
+      repository: file://../../../shared/charts/bevel-storageclass
+      tags:
+      - storage
+      version: ~1.3.1
+    - alias: certs
+      condition: certs.generateCertificates
+      name: fabric-catools
+      repository: file://../fabric-catools
+      tags:
+      - catools
+      version: ~1.3.1
+    description: 'Hyperledger Fabric: Deploys orderer node.'
+    digest: 08cece71bf7302a485b54757c271753eae60b597bc43d1e45b988101353edf1b
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-orderernode
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-orderernode-1.3.1/fabric-orderernode-1.3.1.tgz
+    version: 1.3.1
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:11.552967685Z"
@@ -1629,6 +1961,30 @@ entries:
   fabric-osnadmin-channel-create:
   - apiVersion: v1
     appVersion: latest
+    created: "2025-11-12T09:58:48.487840131Z"
+    description: 'Hyperledger Fabric: Creates channel using OSNAdmin'
+    digest: 2c782767f1bb1834cd308efa52e0682c4d462ed341c53821c814a8bfe799fc0d
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-osnadmin-channel-create
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-osnadmin-channel-create-1.3.1/fabric-osnadmin-channel-create-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: latest
     created: "2024-07-22T09:51:11.674136475Z"
     description: 'Hyperledger Fabric: Creates channel using OSNAdmin'
     digest: 268419276321ddf0c251ca3af948d5a57ab2413b4d579efbaad1e950791e3293
@@ -1670,6 +2026,52 @@ entries:
     - https://github.com/hyperledger/bevel/releases/download/fabric-osnadmin-channel-create-0.15.0/fabric-osnadmin-channel-create-0.15.0.tgz
     version: 0.15.0
   fabric-peernode:
+  - apiVersion: v1
+    appVersion: latest
+    created: "2025-11-12T09:58:48.658866581Z"
+    dependencies:
+    - alias: storage
+      condition: storage.enabled
+      name: bevel-storageclass
+      repository: file://../../../shared/charts/bevel-storageclass
+      tags:
+      - storage
+      version: ~1.3.1
+    - alias: certs
+      condition: certs.generateCertificates
+      name: fabric-catools
+      repository: file://../fabric-catools
+      tags:
+      - catools
+      version: ~1.3.1
+    - alias: peer
+      condition: peer.cliEnabled
+      name: fabric-cli
+      repository: file://../fabric-cli
+      tags:
+      - cli
+      version: ~1.3.1
+    description: 'Hyperledger Fabric: Deploys peer node.'
+    digest: 35e8a8709f946713911d9bfbfdc188a240bb68a86a20706f6f7f3a12c12a9d54
+    home: https://hyperledger-bevel.readthedocs.io/en/latest/
+    keywords:
+    - bevel
+    - hlf
+    - fabric
+    - hyperledger
+    - enterprise
+    - blockchain
+    - deployment
+    - accenture
+    maintainers:
+    - email: bevel@lists.lfdecentralizedtrust.org
+      name: Hyperledger Bevel maintainers
+    name: fabric-peernode
+    sources:
+    - https://github.com/hyperledger-bevel/bevel
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/fabric-peernode-1.3.3/fabric-peernode-1.3.3.tgz
+    version: 1.3.3
   - apiVersion: v1
     appVersion: latest
     created: "2024-07-22T09:51:11.816993436Z"
@@ -2101,6 +2503,15 @@ entries:
   zkkafka:
   - apiVersion: v1
     appVersion: "2.0"
+    created: "2025-11-12T09:58:48.842808214Z"
+    description: 'Hyperledger Fabric: Deploys zookeeper & kafka.'
+    digest: 38e4c6bcf106cd5d1a7c9b2a133f9b33fcf8b62dc8dc8b414816e5d29c7df1ee
+    name: zkkafka
+    urls:
+    - https://github.com/Fraktal-PM3/bevel/releases/download/zkkafka-1.3.1/zkkafka-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v1
+    appVersion: "2.0"
     created: "2024-01-24T09:41:49.297629684Z"
     description: 'Hyperledger Fabric: Deploys zookeeper & kafka.'
     digest: 8c9cc55c307d585951c9bb358d6b1d78bdff2d6d089bd324ad18e84673723ce2
@@ -2108,4 +2519,4 @@ entries:
     urls:
     - https://github.com/hyperledger/bevel/releases/download/zkkafka-1.0.0/zkkafka-1.0.0.tgz
     version: 1.0.0
-generated: "2024-07-23T10:27:49.501496681Z"
+generated: "2025-11-12T09:58:48.843111727Z"
