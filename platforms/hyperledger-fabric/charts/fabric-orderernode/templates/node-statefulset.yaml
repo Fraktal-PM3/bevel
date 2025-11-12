@@ -156,22 +156,59 @@ spec:
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
 
+          # Function to validate PEM format
+          function validatePEM {
+            local content="$1"
+            local cert_type="$2"
+
+            # Check if content is null, empty, or the string "null"
+            if [ -z "$content" ] || [ "$content" = "null" ]; then
+              echo "ERROR: $cert_type is null or empty"
+              return 1
+            fi
+
+            # Check if content contains PEM markers
+            if echo "$content" | grep -q "BEGIN.*CERTIFICATE\|BEGIN.*PRIVATE KEY"; then
+              return 0
+            else
+              echo "ERROR: $cert_type does not contain valid PEM data"
+              echo "DEBUG: First 100 chars of content: ${content:0:100}"
+              return 1
+            fi
+          }
+
           function getOrdererTlsSecret {
             KEY=$1
-       
+
             echo "Getting TLS certificates from Vault."
             vaultBevelFunc "readJson" "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}"
             if [ "$SECRETS_AVAILABLE" == "yes" ]
             then
+              echo "DEBUG: Vault secret retrieved successfully for ${KEY}"
+              echo "DEBUG: Vault secret keys: $(echo ${VAULT_SECRET} | jq -r 'keys')"
+
               TLS_CA_CERT=$(echo ${VAULT_SECRET} | jq -r '.["ca_crt"]')
               TLS_SERVER_CERT=$(echo ${VAULT_SECRET} | jq -r '.["server_crt"]')
               TLS_SERVER_KEY=$(echo ${VAULT_SECRET} | jq -r '.["server_key"]')
-              
-              echo "${TLS_CA_CERT}" > ${OUTPUT_PATH}/ca.crt
-              echo "${TLS_SERVER_CERT}" > ${OUTPUT_PATH}/server.crt
-              echo "${TLS_SERVER_KEY}" > ${OUTPUT_PATH}/server.key
-              ORDERER_TLS_SECRET=true
+
+              # Validate certificates before writing
+              if validatePEM "$TLS_CA_CERT" "TLS CA certificate" && \
+                 validatePEM "$TLS_SERVER_CERT" "TLS server certificate" && \
+                 validatePEM "$TLS_SERVER_KEY" "TLS server key"; then
+
+                echo "${TLS_CA_CERT}" > ${OUTPUT_PATH}/ca.crt
+                echo "${TLS_SERVER_CERT}" > ${OUTPUT_PATH}/server.crt
+                echo "${TLS_SERVER_KEY}" > ${OUTPUT_PATH}/server.key
+
+                echo "SUCCESS: TLS certificates validated and written to ${OUTPUT_PATH}"
+                ORDERER_TLS_SECRET=true
+              else
+                echo "ERROR: TLS certificate validation failed for ${KEY}"
+                echo "DEBUG: Check if Vault secret at path '${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}' has fields: ca_crt, server_crt, server_key"
+                ORDERER_TLS_SECRET=false
+              fi
             else
+              echo "ERROR: Vault secret not available at path '${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}'"
               ORDERER_TLS_SECRET=false
             fi
           }
@@ -183,60 +220,129 @@ spec:
             vaultBevelFunc "readJson" "${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}"
             if [ "$SECRETS_AVAILABLE" == "yes" ]
             then
+              echo "DEBUG: Vault MSP secret retrieved successfully for ${KEY}"
+              echo "DEBUG: Vault MSP secret keys: $(echo ${VAULT_SECRET} | jq -r 'keys')"
+
               ADMINCERT=$(echo ${VAULT_SECRET} | jq -r '.["admincerts"]')
               CACERTS=$(echo ${VAULT_SECRET} | jq -r '.["cacerts"]')
               KEYSTORE=$(echo ${VAULT_SECRET} | jq -r '.["keystore"]')
               SIGNCERTS=$(echo ${VAULT_SECRET} | jq -r '.["signcerts"]')
               TLSCACERTS=$(echo ${VAULT_SECRET} | jq -r '.["tlscacerts"]')
 
-              echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
-              echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
-              echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
-              echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
-              echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt
-              ORDERER_MSP_SECRET=true
+              # Validate MSP certificates before writing
+              if validatePEM "$ADMINCERT" "Admin certificate" && \
+                 validatePEM "$CACERTS" "CA certificate" && \
+                 validatePEM "$KEYSTORE" "Keystore" && \
+                 validatePEM "$SIGNCERTS" "Sign certificate" && \
+                 validatePEM "$TLSCACERTS" "TLS CA certificate"; then
+
+                echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
+                echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
+                echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
+                echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
+                echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt
+
+                echo "SUCCESS: MSP certificates validated and written to ${OUTPUT_PATH}"
+                ORDERER_MSP_SECRET=true
+              else
+                echo "ERROR: MSP certificate validation failed for ${KEY}"
+                echo "DEBUG: Check if Vault secret at path '${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}' has fields: admincerts, cacerts, keystore, signcerts, tlscacerts"
+                ORDERER_MSP_SECRET=false
+              fi
             else
+              echo "ERROR: Vault MSP secret not available at path '${VAULT_SECRET_ENGINE}/${VAULT_SECRET_PREFIX}/orderers/${KEY}'"
               ORDERER_MSP_SECRET=false
-            fi  
+            fi
           }
 
 {{- else }}
+          # Function to validate PEM format (Kubernetes secrets path)
+          function validatePEM {
+            local content="$1"
+            local cert_type="$2"
+
+            # Check if content is null, empty, or the string "null"
+            if [ -z "$content" ] || [ "$content" = "null" ]; then
+              echo "ERROR: $cert_type is null or empty"
+              return 1
+            fi
+
+            # Check if content contains PEM markers
+            if echo "$content" | grep -q "BEGIN.*CERTIFICATE\|BEGIN.*PRIVATE KEY"; then
+              return 0
+            else
+              echo "ERROR: $cert_type does not contain valid PEM data"
+              echo "DEBUG: First 100 chars of content: ${content:0:100}"
+              return 1
+            fi
+          }
+
           function getOrdererTlsSecret {
             KEY=$1
+            echo "Getting TLS certificates from Kubernetes secret ${KEY}"
             KUBENETES_SECRET=$(kubectl get secret ${KEY} --namespace {{ .Release.Namespace }} -o json)
             if  [ "$KUBENETES_SECRET" = "" ]; then
+              echo "ERROR: Kubernetes secret ${KEY} not found in namespace {{ .Release.Namespace }}"
               ORDERER_TLS_SECRET=false
             else
+              echo "DEBUG: Kubernetes secret ${KEY} found, decoding certificates"
               TLS_CA_CERT=$(echo ${KUBENETES_SECRET} | jq -r '.data.cacrt'  | base64 -d)
               TLS_SERVER_CERT=$(echo ${KUBENETES_SECRET} | jq -r '.data.servercrt'  | base64 -d)
               TLS_SERVER_KEY=$(echo ${KUBENETES_SECRET} | jq -r '.data.serverkey'  | base64 -d)
-              
-              echo "${TLS_CA_CERT}" > ${OUTPUT_PATH}/ca.crt
-              echo "${TLS_SERVER_CERT}" > ${OUTPUT_PATH}/server.crt
-              echo "${TLS_SERVER_KEY}" > ${OUTPUT_PATH}/server.key
-              ORDERER_TLS_SECRET=true
+
+              # Validate certificates before writing
+              if validatePEM "$TLS_CA_CERT" "TLS CA certificate" && \
+                 validatePEM "$TLS_SERVER_CERT" "TLS server certificate" && \
+                 validatePEM "$TLS_SERVER_KEY" "TLS server key"; then
+
+                echo "${TLS_CA_CERT}" > ${OUTPUT_PATH}/ca.crt
+                echo "${TLS_SERVER_CERT}" > ${OUTPUT_PATH}/server.crt
+                echo "${TLS_SERVER_KEY}" > ${OUTPUT_PATH}/server.key
+
+                echo "SUCCESS: TLS certificates validated and written to ${OUTPUT_PATH}"
+                ORDERER_TLS_SECRET=true
+              else
+                echo "ERROR: TLS certificate validation failed for Kubernetes secret ${KEY}"
+                ORDERER_TLS_SECRET=false
+              fi
             fi
           }
 
           function getOrdererMspSecret {
-            KEY=$1                       
+            KEY=$1
+            echo "Getting MSP certificates from Kubernetes secret ${KEY}"
             KUBENETES_SECRET=$(kubectl get secret ${KEY} --namespace {{ .Release.Namespace }} -o json)
             if  [ "$KUBENETES_SECRET" = "" ]; then
+              echo "ERROR: Kubernetes secret ${KEY} not found in namespace {{ .Release.Namespace }}"
               ORDERER_MSP_SECRET=false
             else
+              echo "DEBUG: Kubernetes MSP secret ${KEY} found, decoding certificates"
               ADMINCERT=$(echo ${KUBENETES_SECRET} | jq -r '.data.admincerts'  | base64 -d)
               CACERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.cacerts'  | base64 -d)
               KEYSTORE=$(echo ${KUBENETES_SECRET} | jq -r '.data.keystore'  | base64 -d)
               SIGNCERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.signcerts'  | base64 -d)
               TLSCACERTS=$(echo ${KUBENETES_SECRET} | jq -r '.data.tlscacerts'  | base64 -d)
 
-              echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
-              echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
-              echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
-              echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
-              echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt
-              ORDERER_MSP_SECRET=true
-            fi                 
+              # Validate MSP certificates before writing
+              if validatePEM "$ADMINCERT" "Admin certificate" && \
+                 validatePEM "$CACERTS" "CA certificate" && \
+                 validatePEM "$KEYSTORE" "Keystore" && \
+                 validatePEM "$SIGNCERTS" "Sign certificate" && \
+                 validatePEM "$TLSCACERTS" "TLS CA certificate"; then
+
+                echo "${ADMINCERT}" > ${OUTPUT_PATH}/admincerts/admin.crt
+                echo "${CACERTS}" > ${OUTPUT_PATH}/cacerts/ca.crt
+                echo "${KEYSTORE}" > ${OUTPUT_PATH}/keystore/server.key
+                echo "${SIGNCERTS}" > ${OUTPUT_PATH}/signcerts/server.crt
+                echo "${TLSCACERTS}" > ${OUTPUT_PATH}/tlscacerts/tlsca.crt
+
+                echo "SUCCESS: MSP certificates validated and written to ${OUTPUT_PATH}"
+                ORDERER_MSP_SECRET=true
+              else
+                echo "ERROR: MSP certificate validation failed for Kubernetes secret ${KEY}"
+                ORDERER_MSP_SECRET=false
+              fi
+            fi
           }
 
 {{- end }} 
