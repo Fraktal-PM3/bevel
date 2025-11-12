@@ -1,0 +1,94 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: orderer1
+  namespace: pm3org-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: orderer1
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-dev
+        namespace: flux-dev
+      chart: platforms/hyperledger-fabric/charts/fabric-orderernode
+  values:
+    global:
+      version: 2.5.4
+      serviceAccountName: vault-auth
+      cluster:
+        provider: minikube
+        cloudNativeServices: false
+      vault:
+        type: hashicorp
+        network: fabric
+        address: http://192.168.49.1:8200
+        authPath: devpm3org
+        secretEngine: secretsv2
+        secretPrefix: "data/devpm3org"
+        role: vault-role
+        tls: false
+      proxy:
+        provider: haproxy
+        externalUrlSuffix: org1proxy.pm3fraktal.se
+
+    storage:
+      enabled: false
+      nameOverride: pm3org-bevel-storageclass
+      size: 512Mi
+
+    certs:
+      generateCertificates: true
+      orgData:
+        caAddress: ca.pm3org-net.org1proxy.pm3fraktal.se
+        caAdminUser: pm3org-admin
+        caAdminPassword: pm3org-adminpw
+        orgName: pm3org
+        type: orderer
+        componentSubject: "O=Orderer,OU=Orderer,L=65.61/22.13/Lulea,C=SE"
+
+      settings:
+        createConfigMaps: True
+        refreshCertValue: false
+        addPeerValue: false
+        removeCertsOnDelete: true
+        removeOrdererTlsOnDelete: true
+
+    image:
+      orderer: ghcr.io/hyperledger/bevel-fabric-orderer
+      alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+      pullSecret: regcred
+
+    orderer:
+      consensus: raft
+      logLevel: info
+      localMspId: pm3orgMSP
+      tlsStatus: true
+      keepAliveServerInterval: 10s
+      serviceType: ClusterIP
+      ports:
+        grpc:
+          clusterIpPort: 7050
+        metrics: 
+          enabled: False
+          clusterIpPort: 9443
+      resources:
+        limits:
+          memory: 512M
+          cpu: 1
+        requests:
+          memory: 512M
+          cpu: 0.25
+    healthCheck: 
+      retries: 10
+      sleepTimeAfterError: 15
+
+      labels:
+        service:
+          - example1: example2
+        pvc:
+        deployment:
