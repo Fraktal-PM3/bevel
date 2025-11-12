@@ -380,21 +380,411 @@ kubectl describe pod <pod-name> -n <namespace>
 After deployment completes (15-30 minutes typically):
 
 ```bash
-# Verify all pods are running
-kubectl get pods -n supplychain-net
-kubectl get pods -n carrier-net
+# Check all pods are running
+kubectl get pods --all-namespaces
 
-# Check CA is accessible
-kubectl get svc -n supplychain-net
+# Verify channel creation
+kubectl logs -n carrier-net $(kubectl get pods -n carrier-net -l app=peer0 -o jsonpath='{.items[0].metadata.name}') | grep -i "joined channel"
 
-# Access peer CLI (if enabled)
-kubectl get pods -n carrier-net | grep cli
-kubectl exec -it <peer-cli-pod-name> -n carrier-net -- bash
-
-# Inside the CLI pod
+# Access CLI pod (if enabled)
+kubectl exec -it $(kubectl get pods -n carrier-net -l app=peer0-cli -o jsonpath='{.items[0].metadata.name}') -n carrier-net -- bash
 peer channel list
-peer chaincode list --installed
 ```
+
+## Exposing the Fabric Network for External Applications
+
+By default, the minikube configuration uses `proxy: none`, which means services are only accessible within the Kubernetes cluster using internal DNS. To connect external applications to your Fabric network, you have several options:
+
+### Option 1: Using Nginx Ingress (Recommended for Testing)
+
+This approach uses minikube's built-in Nginx ingress controller to expose services via host-based routing.
+
+#### Enable Minikube Ingress
+
+```bash
+# Enable the ingress addon
+minikube addons enable ingress
+
+# Verify ingress controller is running
+kubectl get pods -n ingress-nginx
+```
+
+#### Create Ingress Resources
+
+Since the Bevel charts only create Ingress when `proxy.provider` is "haproxy", you'll need to create custom Ingress resources:
+
+```bash
+# Create ingress configuration
+cat > build/fabric-ingress.yaml <<'EOF'
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orderer1-ingress
+  namespace: supplychain-net
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: orderer1.supplychain-net.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: orderer1
+            port:
+              number: 7050
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: peer0-ingress
+  namespace: carrier-net
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: peer0.carrier-net.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: peer0
+            port:
+              number: 7051
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ca-ingress
+  namespace: carrier-net
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ca.carrier-net.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ca
+            port:
+              number: 7054
+EOF
+
+# Apply the ingress resources
+kubectl apply -f build/fabric-ingress.yaml
+```
+
+#### Configure DNS
+
+Add entries to your `/etc/hosts` (or `C:\Windows\System32\drivers\etc\hosts` on Windows):
+
+```bash
+# Get minikube IP
+MINIKUBE_IP=$(minikube ip)
+echo "Minikube IP: $MINIKUBE_IP"
+
+# Add to /etc/hosts
+sudo bash -c "cat >> /etc/hosts <<EOF
+$MINIKUBE_IP orderer1.supplychain-net.local
+$MINIKUBE_IP peer0.carrier-net.local
+$MINIKUBE_IP peer0.manufacturer-net.local
+$MINIKUBE_IP ca.carrier-net.local
+$MINIKUBE_IP ca.manufacturer-net.local
+EOF"
+```
+
+#### Test Connectivity
+
+```bash
+# Test orderer
+openssl s_client -connect orderer1.supplychain-net.local:443 -servername orderer1.supplychain-net.local
+
+# Test peer
+openssl s_client -connect peer0.carrier-net.local:443 -servername peer0.carrier-net.local
+```
+
+#### Configure Client Connection Profile
+
+```json
+{
+  "orderers": {
+    "orderer1.supplychain-net": {
+      "url": "grpcs://orderer1.supplychain-net.local:443",
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer1.supplychain-net"
+      }
+    }
+  },
+  "peers": {
+    "peer0.carrier-net": {
+      "url": "grpcs://peer0.carrier-net.local:443",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.carrier-net"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Using NodePort Services
+
+NodePort exposes services on high-numbered ports (30000-32767) directly on the minikube node.
+
+#### Upgrade Services to NodePort
+
+```bash
+# Upgrade peer service
+helm upgrade peer0 ./platforms/hyperledger-fabric/charts/fabric-peernode \
+  --namespace carrier-net \
+  --reuse-values \
+  --set peer.serviceType=NodePort \
+  --set peer.ports.grpc.nodePort=30051 \
+  --set peer.ports.events.nodePort=30053
+
+# Upgrade orderer service
+helm upgrade orderer1 ./platforms/hyperledger-fabric/charts/fabric-orderernode \
+  --namespace supplychain-net \
+  --reuse-values \
+  --set orderer.serviceType=NodePort \
+  --set orderer.ports.grpc.nodeport=30050
+
+# Upgrade CA service
+helm upgrade ca ./platforms/hyperledger-fabric/charts/fabric-ca-server \
+  --namespace carrier-net \
+  --reuse-values \
+  --set service.serviceType=NodePort \
+  --set service.ports.tcp.nodeport=30054
+```
+
+#### Verify NodePort Assignments
+
+```bash
+# Check services
+kubectl get svc -n supplychain-net
+kubectl get svc -n carrier-net
+
+# Get minikube IP
+MINIKUBE_IP=$(minikube ip)
+echo "Services accessible at: $MINIKUBE_IP"
+echo "  - Orderer: $MINIKUBE_IP:30050"
+echo "  - Peer0: $MINIKUBE_IP:30051"
+echo "  - CA: $MINIKUBE_IP:30054"
+```
+
+#### Configure Client Connection Profile
+
+```json
+{
+  "orderers": {
+    "orderer1.supplychain-net": {
+      "url": "grpcs://192.168.49.2:30050",
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer1.supplychain-net"
+      }
+    }
+  },
+  "peers": {
+    "peer0.carrier-net": {
+      "url": "grpcs://192.168.49.2:30051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.carrier-net"
+      }
+    }
+  }
+}
+```
+
+### Option 3: Using Port Forwarding (Quick Testing)
+
+Port forwarding is the quickest method for testing but requires keeping terminal sessions open.
+
+```bash
+# Forward peer gRPC port
+kubectl port-forward -n carrier-net svc/peer0 7051:7051 &
+
+# Forward peer events port
+kubectl port-forward -n carrier-net svc/peer0 7053:7053 &
+
+# Forward orderer port
+kubectl port-forward -n supplychain-net svc/orderer1 7050:7050 &
+
+# Forward CA port
+kubectl port-forward -n carrier-net svc/ca 7054:7054 &
+```
+
+Your application can then connect to `localhost:7051`, `localhost:7050`, etc.
+
+To stop port forwarding:
+```bash
+# Kill all port-forward processes
+pkill -f "kubectl port-forward"
+```
+
+### Option 4: Using Minikube Tunnel (LoadBalancer)
+
+Minikube tunnel allows LoadBalancer services to work on minikube.
+
+```bash
+# Start tunnel (requires sudo and must stay running)
+minikube tunnel
+```
+
+In another terminal:
+
+```bash
+# Upgrade services to LoadBalancer type
+helm upgrade peer0 ./platforms/hyperledger-fabric/charts/fabric-peernode \
+  --namespace carrier-net \
+  --reuse-values \
+  --set peer.serviceType=LoadBalancer
+
+# Check assigned external IPs
+kubectl get svc -n carrier-net
+```
+
+### Comparison of Exposure Methods
+
+| Method | Complexity | Stability | Use Case |
+|--------|-----------|-----------|----------|
+| **Nginx Ingress** | Medium | High | External apps with DNS |
+| **NodePort** | Low | High | Simple external access |
+| **Port Forward** | Very Low | Low | Quick testing only |
+| **Minikube Tunnel** | Medium | Medium | LoadBalancer testing |
+
+**Recommendation**: Use **Nginx Ingress** for a production-like setup, or **NodePort** for simplicity.
+
+### Obtaining Certificates for External Applications
+
+External applications need TLS certificates to connect. Retrieve them from Vault:
+
+```bash
+# Set Vault credentials
+export VAULT_ADDR='http://192.168.X.X:8200'
+export VAULT_TOKEN="your_vault_root_token"
+
+# Create directory for certificates
+mkdir -p build/crypto/{orderer,peer,ca}
+
+# Get orderer TLS CA certificate
+vault kv get -field=ca.crt \
+  secretsv2/crypto/ordererOrganizations/supplychain-net/orderers/orderer1.supplychain-net/tls \
+  > build/crypto/orderer/ca.crt
+
+# Get peer TLS CA certificate
+vault kv get -field=ca.crt \
+  secretsv2/crypto/peerOrganizations/carrier-net/peers/peer0.carrier-net/tls \
+  > build/crypto/peer/ca.crt
+
+# Get admin user certificate (for signing transactions)
+vault kv get -field=user.crt \
+  secretsv2/crypto/peerOrganizations/carrier-net/users/admin/msp \
+  > build/crypto/peer/admin.crt
+
+# Get admin user private key
+vault kv get -field=user.key \
+  secretsv2/crypto/peerOrganizations/carrier-net/users/admin/msp \
+  > build/crypto/peer/admin.key
+
+# Get CA root certificate
+vault kv get -field=ca.carrier-net-cert.pem \
+  secretsv2/crypto/peerOrganizations/carrier-net/ca \
+  > build/crypto/ca/ca-cert.pem
+```
+
+### Complete Connection Profile Example
+
+Here's a complete connection profile for external applications:
+
+```json
+{
+  "name": "fabric-minikube-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Carrier",
+    "connection": {
+      "timeout": {
+        "peer": { "endorser": "300" },
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+    "allchannel": {
+      "orderers": ["orderer1.supplychain-net"],
+      "peers": {
+        "peer0.carrier-net": {
+          "endorsingPeer": true,
+          "chaincodeQuery": true,
+          "ledgerQuery": true,
+          "eventSource": true
+        }
+      }
+    }
+  },
+  "organizations": {
+    "Carrier": {
+      "mspid": "carrierMSP",
+      "peers": ["peer0.carrier-net"],
+      "certificateAuthorities": ["ca.carrier-net"]
+    },
+    "Supplychain": {
+      "mspid": "supplychainMSP",
+      "orderers": ["orderer1.supplychain-net"]
+    }
+  },
+  "orderers": {
+    "orderer1.supplychain-net": {
+      "url": "grpcs://orderer1.supplychain-net.local:443",
+      "tlsCACerts": {
+        "path": "./build/crypto/orderer/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer1.supplychain-net",
+        "hostnameOverride": "orderer1.supplychain-net"
+      }
+    }
+  },
+  "peers": {
+    "peer0.carrier-net": {
+      "url": "grpcs://peer0.carrier-net.local:443",
+      "tlsCACerts": {
+        "path": "./build/crypto/peer/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.carrier-net",
+        "hostnameOverride": "peer0.carrier-net"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.carrier-net": {
+      "url": "https://ca.carrier-net.local:443",
+      "caName": "ca-carrier",
+      "tlsCACerts": {
+        "path": "./build/crypto/ca/ca-cert.pem"
+      },
+      "httpOptions": {
+        "verify": true
+      }
+    }
+  }
+}
+```
+
+Note: Adjust URLs based on your chosen exposure method (Ingress vs NodePort vs localhost).
 
 ## Deploying Chaincode (Optional)
 
