@@ -22,7 +22,7 @@ spec:
       cluster:
         provider: minikube
         cloudNativeServices: false
-        kubernetesUrl: https://192.168.49.1:18443
+        kubernetesUrl: https://46.62.234.169:18443
       vault:
         type: hashicorp
         network: fabric
